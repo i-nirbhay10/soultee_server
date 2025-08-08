@@ -181,9 +181,9 @@ const Welcome_Email_Template = `
       </ul>
       <p>We're here to support you every step of the way.</p>
 
-    //   <p style="text-align: center;">
-    //     <a href="{gettingStartedUrl}" class="button">Get Started</a>
-    //   </p>
+    <p style="text-align: center;">
+        <a href="https://www.devoutgrowth.com/" class="button">Get Started</a>
+    </p>
     </div>
     <div class="footer">
       <p>&copy; ${new Date().getFullYear()} Your Company. All rights reserved.</p>

@@ -7,7 +7,7 @@ const {
 const sendVerificationEmail = async (email, verificationCode) => {
   try {
     const response = await transporter.sendMail({
-      from: '"Unicorn pvt.ltd" <nirbhayverma10@gmail.com>',
+      from: '"Devout growth pvt.ltd" <nirbhayverma10@gmail.com>',
       to: email,
       subject: "Verify your Email",
       text: "Verify your Email",
@@ -25,7 +25,7 @@ const sendVerificationEmail = async (email, verificationCode) => {
 const sendWelcomeEmail = async (email, name) => {
   try {
     const response = await transporter.sendMail({
-      from: '"Unicorn pvt.ltd" <nirbhayverma10@gmail.com>',
+      from: '"Devout growth pvt.ltd" <nirbhayverma10@gmail.com>',
       to: email,
       subject: "Welcome Email",
       text: "Welcome Email",
