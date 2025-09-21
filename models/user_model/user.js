@@ -20,6 +20,23 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+
+    //     mobile: { type: String, required: true },
+    // userType: {
+    //   type: String,
+    //   enum: ['Individual', 'Agency', 'Company'],
+    //   default: 'Individual',
+    // },
+    // agency: {
+    //   agencyName: { type: String },
+    //   agencyAddress: { type: String },
+    //   agencyEmail: { type: String },
+    // },
+    // company: {
+    //   companyName: { type: String },
+    //   companyAddress: { type: String },
+    //   companyEmail: { type: String },
+    // },
     password: {
       type: String,
       required: true,

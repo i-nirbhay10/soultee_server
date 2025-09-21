@@ -25,6 +25,64 @@ function generateUNID(email) {
   return `${namePart}${year}${month}${day}${hour}${minute}`.slice(0, 12);
 }
 
+// router.post('/register', async (req, res) => {
+//   try {
+//     const { name, email, password, mobile, userType, agency, company } = req.body;
+
+//     // Basic validations
+//     if (!name || !email || !password || !mobile || !userType) {
+//       return res.status(400).json({ message: 'All required fields must be filled' });
+//     }
+
+//     // Conditional validations
+//     if (userType === 'Agency') {
+//       if (!agency || !agency.agencyName || !agency.agencyAddress || !agency.agencyEmail) {
+//         return res.status(400).json({ message: 'Agency information is incomplete' });
+//       }
+//     }
+
+//     if (userType === 'Company') {
+//       if (!company || !company.companyName || !company.companyAddress || !company.companyEmail) {
+//         return res.status(400).json({ message: 'Company/Organization information is incomplete' });
+//       }
+//     }
+
+//     // Check if user already exists
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: 'User already exists with this email' });
+//     }
+
+//     // Hash the password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create user object
+//     const newUser = new User({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       mobile,
+//       userType,
+//     });
+
+//     if (userType === 'Agency') {
+//       newUser.agency = agency;
+//     }
+
+//     if (userType === 'Company') {
+//       newUser.company = company;
+//     }
+
+//     await newUser.save();
+
+//     res.status(201).json({ message: 'User registered successfully' });
+
+//   } catch (error) {
+//     console.error('Registration error:', error.message);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
 // ✅ Register User
 exports.registerUser = async (req, res) => {
   try {
