@@ -11,48 +11,49 @@ const userSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      // required: true,
+      required: false, // Now optional – will validate in controller
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"],
     },
     email: {
       type: String,
-      required: true,
+      required: false, // Now optional – will validate in controller
       unique: true,
       lowercase: true,
       trim: true,
     },
-
-    //     mobile: { type: String, required: true },
-    // userType: {
-    //   type: String,
-    //   enum: ['Individual', 'Agency', 'Company'],
-    //   default: 'Individual',
-    // },
-    // agency: {
-    //   agencyName: { type: String },
-    //   agencyAddress: { type: String },
-    //   agencyEmail: { type: String },
-    // },
-    // company: {
-    //   companyName: { type: String },
-    //   companyAddress: { type: String },
-    //   companyEmail: { type: String },
-    // },
+    mobile: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    userType: {
+      type: String,
+      enum: ["Individual", "Agency", "Company"],
+      default: "Individual",
+    },
+    agency: {
+      agencyName: { type: String, trim: true },
+      agencyAddress: { type: String, trim: true },
+      agencyEmail: { type: String, trim: true, lowercase: true },
+    },
+    company: {
+      companyName: { type: String, trim: true },
+      companyAddress: { type: String, trim: true },
+      companyEmail: { type: String, trim: true, lowercase: true },
+    },
     password: {
       type: String,
       required: true,
       // minlength: 6,
-      // select: false // optional: hides password in queries unless explicitly selected
-    },
-    phone: {
-      type: String,
-      required: false,
-      sparse: true, // allows multiple nulls
-      unique: true, // ensures uniqueness if provided
-      trim: true,
+      // select: false, // optional: hides password in queries unless explicitly selected
     },
     avatar: {
       type: String,
-      default: "/placeholder-user.jpg",
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
     },
     status: {
       type: String,
@@ -124,6 +125,57 @@ const userSchema = new mongoose.Schema(
         action: String,
         date: Date,
         details: String,
+      },
+    ],
+    subscriptions: [
+      {
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: "Service", // optional, if you have a Service model
+        },
+        planId: {
+          type: String,
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["active", "expired", "canceled"],
+          default: "active",
+        },
+        startDate: {
+          type: Date,
+          required: true,
+        },
+        endDate: {
+          type: Date,
+          required: true,
+        },
+        paymentId: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+    payAsYouGoHistory: [
+      {
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: "Service",
+        },
+        offerId: {
+          type: String,
+          required: true,
+        },
+        paymentId: {
+          type: String,
+          required: true,
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },

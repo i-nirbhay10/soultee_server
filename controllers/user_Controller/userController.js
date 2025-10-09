@@ -25,91 +25,82 @@ function generateUNID(email) {
   return `${namePart}${year}${month}${day}${hour}${minute}`.slice(0, 12);
 }
 
-// router.post('/register', async (req, res) => {
-//   try {
-//     const { name, email, password, mobile, userType, agency, company } = req.body;
-
-//     // Basic validations
-//     if (!name || !email || !password || !mobile || !userType) {
-//       return res.status(400).json({ message: 'All required fields must be filled' });
-//     }
-
-//     // Conditional validations
-//     if (userType === 'Agency') {
-//       if (!agency || !agency.agencyName || !agency.agencyAddress || !agency.agencyEmail) {
-//         return res.status(400).json({ message: 'Agency information is incomplete' });
-//       }
-//     }
-
-//     if (userType === 'Company') {
-//       if (!company || !company.companyName || !company.companyAddress || !company.companyEmail) {
-//         return res.status(400).json({ message: 'Company/Organization information is incomplete' });
-//       }
-//     }
-
-//     // Check if user already exists
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: 'User already exists with this email' });
-//     }
-
-//     // Hash the password
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Create user object
-//     const newUser = new User({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       mobile,
-//       userType,
-//     });
-
-//     if (userType === 'Agency') {
-//       newUser.agency = agency;
-//     }
-
-//     if (userType === 'Company') {
-//       newUser.company = company;
-//     }
-
-//     await newUser.save();
-
-//     res.status(201).json({ message: 'User registered successfully' });
-
-//   } catch (error) {
-//     console.error('Registration error:', error.message);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
-// ✅ Register User
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, mobile, userType, agency, company } =
+      req.body;
 
-    console.log(name, email, password);
+    const allowedUserTypes = ["Individual", "Agency", "Company"];
+    if (!allowedUserTypes.includes(userType)) {
+      return res.status(400).json({ message: "Invalid user type" });
+    }
 
-    if (!email || !password)
+    // Basic validations
+    if (!password || !mobile || !userType) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    // Conditional validation based on userType
+    if (userType === "Individual") {
+      if (!name || !email) {
+        return res.status(400).json({
+          message: "Name and Email are required for Individual users.",
+        });
+      }
+    }
+
+    if (userType === "Agency") {
+      if (
+        !agency?.agencyName ||
+        !agency?.agencyAddress ||
+        !agency?.agencyEmail
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Agency information is incomplete" });
+      }
+    }
+
+    if (userType === "Company") {
+      if (
+        !company?.companyName ||
+        !company?.companyAddress ||
+        !company?.companyEmail
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Company information is incomplete" });
+      }
+    }
+
+    // Use the correct email for uniqueness check
+    const checkEmail =
+      userType === "Individual"
+        ? email
+        : userType === "Agency"
+        ? agency?.agencyEmail
+        : company?.companyEmail;
+    const existingUser = await User.findOne({
+      email: checkEmail.toLowerCase().trim(),
+    });
+
+    if (existingUser) {
       return res
         .status(400)
-        .json({ message: "Email and password are required." });
+        .json({ message: "A user already exists with this email." });
+    }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "Email already registered." });
-
-    const UNID = `UNUID-${generateUNID(email)}`;
+    const UNID = `UNUID-${generateUNID(checkEmail)}`;
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
 
     const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
       UNID,
+      password: hashedPassword,
+      mobile: mobile.trim(),
+      userType,
       emailVerified: false,
       verificationToken,
       status: "active",
@@ -121,21 +112,45 @@ exports.registerUser = async (req, res) => {
       },
     });
 
+    // Assign name/email for Individual
+    if (userType === "Individual") {
+      newUser.name = name.trim();
+      newUser.email = email.toLowerCase().trim();
+    }
+
+    // Assign agency/company details
+    if (userType === "Agency") {
+      newUser.agency = {
+        agencyName: agency.agencyName.trim(),
+        agencyAddress: agency.agencyAddress.trim(),
+        agencyEmail: agency.agencyEmail.toLowerCase().trim(),
+      };
+      newUser.email = agency.agencyEmail.toLowerCase().trim(); // Use agency email as login
+    }
+
+    if (userType === "Company") {
+      newUser.company = {
+        companyName: company.companyName.trim(),
+        companyAddress: company.companyAddress.trim(),
+        companyEmail: company.companyEmail.toLowerCase().trim(),
+      };
+      newUser.email = company.companyEmail.toLowerCase().trim(); // Use company email as login
+    }
+
     await newUser.save();
-    // await sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({
-      // message: "User registered. Verification code sent to email.",
-      message: "User registered success",
+      message: "User registered successfully",
       user: {
-        email: newUser.email,
-        UNID: newUser.UNID,
         _id: newUser._id,
+        UNID: newUser.UNID,
+        email: newUser.email,
+        userType: newUser.userType,
       },
     });
-  } catch (err) {
-    console.error("Register error:", err.message);
-    res.status(500).json({ message: "Server error during registration." });
+  } catch (error) {
+    console.error("Registration error:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -167,47 +182,53 @@ exports.verifyEmail = async (req, res) => {
 };
 
 // ✅ Login User
+
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password, "email, password");
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
+    }
 
-    if (!user)
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
       return res.status(400).json({ message: "Invalid email or password." });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
-    console.log(isMatch, "user");
-    if (!isMatch)
+    if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password." });
-
-    // if (!user.emailVerified) {
-    //   const newToken = Math.floor(100000 + Math.random() * 900000).toString();
-    //   user.verificationToken = newToken;
-    //   await user.save();
-    //   await sendVerificationEmail(email, newToken);
-
-    //   return res.status(200).json({
-    //     message: "Email not verified. Verification code re-sent.",
-    //   });
-    // }
+    }
 
     const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
+    // Derive user display name based on type
+    let displayName = user.name;
+    if (!displayName && user.userType === "Agency") {
+      displayName = user.agency?.agencyName || "";
+    } else if (!displayName && user.userType === "Company") {
+      displayName = user.company?.companyName || "";
+    }
+
     res.status(200).json({
       message: "Login successful",
       token,
       user: {
-        name: user.name || " ",
+        name: displayName || "User",
         email: user.email,
         UNID: user.UNID,
-        phone: user.phone || " ",
-        profilePhoto: user.avatar || "", // Consistent naming
-        accountType: user.accountType,
+        phone: user.mobile || "",
+        profilePhoto: user.avatar || "",
+        accountType: user.accountType || "basic",
+        userType: user.userType,
+        agency: user.agency || {}, // ✅ fixed: was missing a comma
+        company: user.company || {}, // ✅ fixed: was missing a comma
       },
     });
   } catch (err) {
@@ -233,22 +254,34 @@ exports.getUserByUNID = async (req, res) => {
 };
 
 // ✅ Complete Profile
-// ✅ Complete Profile
 exports.completeUserProfile = async (req, res) => {
   try {
-    const { UNID, name, phone, gender, profilePhoto, bio, preferences } =
-      req.body;
+    const { UNID, name, mobile, gender, profilePhoto, preferences } = req.body;
+
+    console.log(UNID, name, mobile, gender, profilePhoto, preferences);
 
     const user = await User.findOne({ UNID });
-    if (!user) return res.status(404).json({ message: "User not found." });
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
 
-    // Update fields if provided
-    user.name = name || user.name;
-    user.phone = phone || user.phone;
-    user.gender = gender || user.gender;
-    user.avatar = profilePhoto || user.avatar; // Match formData
-    user.bio = bio || user.bio;
-    user.preferences = preferences || user.preferences;
+    // Only update name for Individual users
+    if (user.userType === "Individual" && typeof name === "string") {
+      user.name = name.trim();
+    }
+
+    if (mobile) user.mobile = mobile;
+    if (gender) user.gender = gender;
+    if (profilePhoto) user.avatar = profilePhoto;
+
+    // Merge preferences if provided
+    if (preferences && typeof preferences === "object") {
+      user.preferences = {
+        ...user.preferences,
+        ...preferences,
+      };
+    }
+
     user.profileStatus = "completed";
     user.isProfileComplete = true;
     user.lastActive = new Date();
@@ -264,3 +297,60 @@ exports.completeUserProfile = async (req, res) => {
     res.status(500).json({ message: "Server error while updating profile." });
   }
 };
+
+// ✅ Register User
+
+// exports.registerUser = async (req, res) => {
+//   try {
+//     const { name, email, password } = req.body;
+
+//     console.log(name, email, password);
+
+//     if (!email || !password)
+//       return res
+//         .status(400)
+//         .json({ message: "Email and password are required." });
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser)
+//       return res.status(400).json({ message: "Email already registered." });
+
+//     const UNID = `UNUID-${generateUNID(email)}`;
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const verificationToken = Math.floor(
+//       100000 + Math.random() * 900000
+//     ).toString();
+
+//     const newUser = new User({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       UNID,
+//       emailVerified: false,
+//       verificationToken,
+//       status: "active",
+//       joinDate: new Date(),
+//       preferences: {
+//         notifications: true,
+//         marketing: false,
+//         sms: true,
+//       },
+//     });
+
+//     await newUser.save();
+//     // await sendVerificationEmail(email, verificationToken);
+
+//     res.status(201).json({
+//       // message: "User registered. Verification code sent to email.",
+//       message: "User registered success",
+//       user: {
+//         email: newUser.email,
+//         UNID: newUser.UNID,
+//         _id: newUser._id,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Register error:", err.message);
+//     res.status(500).json({ message: "Server error during registration." });
+//   }
+// };

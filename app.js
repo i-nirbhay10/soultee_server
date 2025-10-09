@@ -18,6 +18,10 @@ app.use(express.json());
 // Routes
 app.use("/api/users", require("./routes/user_route/userRoutes"));
 app.use("/api/media", require("./routes/mediaRoutes")); // 👈 New route
+app.use("/api/payment", require("./routes/payment/payment"));
+app.use("/api/paymentsHistory", require("./routes/PaymentHistoryRoutes"));
+// app.use("/webhook", require("./routes/webhook"));
+app.use("/api/service", require("./routes/serviceRoutes"));
 
 // Start server
 app.listen(PORT, () =>
