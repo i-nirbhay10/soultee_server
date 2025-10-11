@@ -12,8 +12,8 @@ const razor = new Razorpay({
 // Controller to create order
 exports.createOrder = async (req, res) => {
   try {
-    const { userId, serviceId, offerId } = req.body;
-    console.log(userId, serviceId, offerId);
+    const { userId, serviceId, offerId, offerName } = req.body;
+    console.log(userId, serviceId, offerId, offerName);
 
     const service = await Service.findById(serviceId);
     if (!service) {
@@ -48,6 +48,7 @@ exports.createOrder = async (req, res) => {
       serviceId,
       type: "one-time",
       offerId,
+      offerName,
       amount: offer.price,
       paymentProvider: "razorpay",
       status: "pending",
@@ -115,7 +116,7 @@ exports.verifyPayment = async (req, res) => {
     console.log("💾 Payment updated and marked as completed:", payment._id);
 
     // Update user record
-    const updateUserResult = await User.findByIdAndUpdate(payment.clientId, {
+    await User.findByIdAndUpdate(payment.clientId, {
       $push: {
         payg: {
           serviceId: payment.serviceId,

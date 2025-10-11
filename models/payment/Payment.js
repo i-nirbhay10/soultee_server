@@ -1,6 +1,5 @@
 // models/Payment.js
 const mongoose = require("mongoose");
-const User = require("../user_model/user");
 
 const PaymentSchema = new mongoose.Schema({
   clientId: {
@@ -8,10 +7,11 @@ const PaymentSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  // serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service" },
-  serviceId: { type: String },
+  serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service" },
+  // serviceId: { type: String },
   type: { type: String, enum: ["one-time", "subscription"], required: true },
   offerId: String,
+  offerName: String,
   planId: String,
   amount: { type: Number, required: true },
   currency: { type: String, default: "INR" },
