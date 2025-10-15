@@ -16,8 +16,9 @@ function verifyOrderSignature(
 function verifyWebhookSignature(payload, signature, secret) {
   const expected = crypto
     .createHmac("sha256", secret)
-    .update(payload)
+    .update(payload) // ✅ MUST be raw buffer or string
     .digest("hex");
+
   return expected === signature;
 }
 

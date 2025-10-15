@@ -11,9 +11,15 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
+app.use("/webhook", require("./routes/webhook"));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 // Routes
 app.use("/api/users", require("./routes/user_route/userRoutes"));
