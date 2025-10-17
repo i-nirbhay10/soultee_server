@@ -138,12 +138,18 @@ exports.verifyPayment = async (req, res) => {
 
 exports.createSubscription = async (req, res) => {
   try {
-    const { userId, serviceId, planId } = req.body;
+    const { userId, serviceId, planId, customerName, customerEmail } = req.body;
 
     console.log("✅ [STEP 1] - Create Subscription triggered");
     console.log("  └─ userId:", userId);
     console.log("  └─ serviceId:", serviceId);
     console.log("  └─ planId:", planId);
+    console.log(
+      "  └─ customerName:",
+      customerName,
+      "└─ customerEmail:",
+      customerEmail
+    );
 
     // STEP 2: Fetch Service
     const service = await Service.findById(serviceId);
@@ -155,7 +161,8 @@ exports.createSubscription = async (req, res) => {
 
     // STEP 3: Validate Plan
     const plan = service.subscriptionPlan;
-    if (!plan || plan.id !== planId) {
+
+    if (!plan || plan.planId !== planId) {
       console.warn("❌ [STEP 3] - Plan mismatch or not found");
       return res.status(400).json({ error: "Plan mismatch" });
     }
@@ -184,6 +191,7 @@ exports.createSubscription = async (req, res) => {
       type: "subscription",
       planId,
       amount: plan.price,
+      offerName: plan.offerName,
       paymentProvider: "razorpay",
       status: "pending",
       razorpaySubscriptionId: subscription.id,

@@ -20,8 +20,8 @@ const ServiceSchema = new mongoose.Schema({
   image: String,
   popular: [String],
   subscriptionPlan: {
-    id: String,
-    name: String,
+    planId: String,
+    offerName: String,
     description: String,
     price: Number,
     deliveryTime: String,
